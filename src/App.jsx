@@ -7,8 +7,10 @@ import { ThirdwebSDK } from "@3rdweb/sdk";
 
 import { UnsupportedChainIdError } from "@web3-react/core";
 
-import { Grid } from 'semantic-ui-react';
+import { Container, Grid, Button } from 'semantic-ui-react';
 import Proposal from "./components/Proposal";
+import MemberList from "./components/MemberList";
+import CreateProposal from "./components/CreateProposal";
 
 // We instantiate the sdk on Rinkeby.
 const sdk = new ThirdwebSDK("rinkeby");
@@ -151,13 +153,13 @@ const App = () => {
 
   if (error instanceof UnsupportedChainIdError ) {
     return (
-      <div className="unsupported-network">
+      <Container style={{background: 'green', width: '100vh'}} className="unsupported-network">
         <h2>Please connect to Rinkeby</h2>
         <p>
           This dapp only works on the Rinkeby network, please switch networks
           in your connected wallet.
         </p>
-      </div>
+      </Container>
     );
   }
 
@@ -165,12 +167,12 @@ const App = () => {
   // to your web app. Let them call connectWallet.
   if (!address) {
     return (
-      <div className="landing">
+      <Container style={{background: 'green', width: '100vw', height: '100vh'}} className="landing">
         <h1>Welcome to FOMODAO</h1>
-        <button onClick={() => connectWallet("injected")} className="btn-hero">
+        <Button onClick={() => connectWallet("injected")} primary>
           Connect your wallet
-        </button>
-      </div>
+        </Button>
+      </Container>
     );
   }
 
@@ -178,48 +180,37 @@ const App = () => {
   // only DAO members will see this. Render all the members + token amounts.
   if (hasClaimedNFT) {
     return (
-      <div className="member-page">
-        <h1>FOMODAO Member Page</h1>
-        <p>Congratulations on being a member</p>
-        <div>
-          <div>
-            <h2>Member List</h2>
-            <table className="card">
-              <thead>
-                <tr>
-                  <th>Address</th>
-                  <th>Token Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {memberList.map((member) => {
-                  return (
-                    <tr key={member.address}>
-                      <td>{shortenAddress(member.address)}</td>
-                      <td>{member.tokenAmount}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <div>
-            <h2>Active Proposals</h2>
-            <Grid>
-                {proposals.map((proposal, index) => <Proposal
-                  key={index}
-                  index={index}
-                  address={address}
-                  proposal={proposal}
-                  hasClaimedNFT={hasClaimedNFT}
-                  tokenModule={tokenModule}
-                  voteModule={voteModule}
-                />)}
-            </Grid>
-            <small>Interacting with any of the proposals will trigger multiple transactions that you will need to sign.</small>
-          </div>
+      <Container style={{background: 'green', width: '100vw', height: '100%'}}>
+        <div style={{textAlign: "center", paddingBottom: '20px'}}>
+          <h1>FOMODAO Member Page</h1>
+          <p>Congratulations on being a member</p>
         </div>
-      </div>
+        <Grid columns={2} divided textAlign='center' centered>
+          <Grid.Row>
+            <Grid.Column style={{width: '40vw'}}>
+              <Grid.Row style={{paddingBottom: '20px'}}>
+                <MemberList shortenAddress={shortenAddress} memberList={memberList} className="card"/>
+              </Grid.Row>
+              <Grid.Row floated width={5}>
+                <CreateProposal/>
+              </Grid.Row>
+            </Grid.Column>
+            <Grid.Column style={{width: '40vw'}}>
+              <h2>Active Proposals</h2>
+              {proposals.map((proposal, index) => <Proposal
+                key={index}
+                index={index}
+                address={address}
+                proposal={proposal}
+                hasClaimedNFT={hasClaimedNFT}
+                tokenModule={tokenModule}
+                voteModule={voteModule}
+              />)}
+              <small>Interacting with any of the proposals will trigger multiple transactions that you will need to sign.</small>
+            </Grid.Column>
+          </Grid.Row>          
+        </Grid>
+      </Container>
     );
   };
 
@@ -246,15 +237,16 @@ const App = () => {
   
   // Render mint nft screen.
   return (
-    <div className="mint-nft">
+    <Container style={{background: 'green', width: '100vw', height: '100vh'}} className="mint-nft">
       <h1>Mint your free FOMODAO Membership NFT</h1>
-      <button
+      <Button
+        primary
         disabled={isClaiming}
         onClick={() => mintNft()}
       >
         {isClaiming ? "Minting..." : "Mint your nft (FREE)"}
-      </button>
-    </div>
+      </Button>
+    </Container>
   );
 };
 

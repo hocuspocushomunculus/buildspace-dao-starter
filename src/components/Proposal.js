@@ -110,7 +110,7 @@ const Proposal = ({ tokenModule=null, voteModule=null, index=null, address="", p
 
     return (
         <Form onSubmit={onSubmit}>
-            <Grid.Row>
+            <Grid.Row style={{ padding: '4px' }} >
                 <Grid.Column>
                     <Card key={proposal.proposalId} className="fluid" >
                         <Card.Content>
@@ -120,16 +120,14 @@ const Proposal = ({ tokenModule=null, voteModule=null, index=null, address="", p
                         </Card.Content>
                         <Card.Content>
                             {proposal.votes.map((vote) => (
-                                <div key={vote.type}>
+                                <label htmlFor={proposal.proposalId + "-" + vote.type} style={{display: "inline", padding: "20px"}}>
                                     <input type="radio" id={proposal.proposalId + "-" + vote.type} name={proposal.proposalId} value={vote.type} defaultChecked={vote.type === 2} />
-                                    <label htmlFor={proposal.proposalId + "-" + vote.type}>
-                                        {vote.label}
-                                    </label>
-                                </div>
+                                    {vote.label}
+                                </label>
                             ))}
                         </Card.Content>
                         <Card.Content>
-                            <Button disabled={isVoting || hasVoted} type="submit">
+                            <Button disabled={isVoting || hasVoted} type="submit" primary>
                                 {isVoting ? "Voting..." : 
                                     hasVoted ? "You Already Voted" : "Submit Votes"}
                             </Button>
