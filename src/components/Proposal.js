@@ -1,38 +1,56 @@
-import { Form, Card, Button, Grid } from "semantic-ui-react";
+import { Form, Label, Radio, Button, Grid, Icon, Segment } from "semantic-ui-react";
 import 'semantic-ui-css/semantic.min.css';
 
 import { ethers } from "ethers";
 
 import { useEffect, useState } from "react";
 
+const proposalStateMapping = {
+    0: 'Pending',
+    1: 'Active',
+    2: 'Canceled',
+    3: 'Defeated',
+    4: 'Succeeded',
+    5: 'Queued',
+    6: 'Expired',
+    7: 'Executed'
+}
+
 const Proposal = ({ tokenModule=null, voteModule=null, index=null, address="", proposal=[], hasClaimedNFT=false }) => {
     const [isVoting, setIsVoting] = useState(false);
     const [hasVoted, setHasVoted] = useState(false);
+    const [voteType, setVoteType] = useState(null);
 
-    // We also need to check if the user already voted.
+    const handleRadioButtons = (e, { value }) => {
+        setVoteType(value);
+    }
+
     useEffect(() => {
-        if (!hasClaimedNFT) {
-            return;
-        }
+        const checkVotedStatus = async () => {
+            if (!hasClaimedNFT) {
+                return;
+            }
 
-        // If we haven't received a proposal as a props then we can't check if the user voted yet!
-        if (!proposal) {
-            return;
-        }
+            // If we haven't received a proposal as a props then we can't check if the user voted yet!
+            if (!proposal) {
+                return;
+            }
 
-        // Check if the user has already voted on the first proposal.
-        voteModule.hasVoted(proposal.proposalId, address)
-            .then((hasVoted) => {
-                setHasVoted(hasVoted);
+            // Check if the user has already voted on the first proposal.
+            try {
+                let hasVoted = await voteModule.hasVoted(proposal.proposalId, address)
+                setHasVoted(hasVoted)
+
                 if (hasVoted) {
                     console.log("🥵 User has already voted for proposal id: " + proposal.proposalId);
                 } else {
                     console.log("🙂 User has not voted yet for proposal id: " + proposal.proposalId);
                 }
-            })
-            .catch((err) => {
+            } catch (err) {
                 console.error("failed to check if wallet has voted", err);
-            });
+            }
+        };
+        checkVotedStatus();
     }, [hasClaimedNFT, proposal, address, voteModule]);
 
 
@@ -47,18 +65,8 @@ const Proposal = ({ tokenModule=null, voteModule=null, index=null, address="", p
         let voteResult = {
             proposalId: proposal.proposalId,
             //abstain by default
-            vote: 2,
+            vote: voteType
         };
-        proposal.votes.forEach((vote) => {
-            const elem = document.getElementById(
-                proposal.proposalId + "-" + vote.type
-            );
-
-            if (elem.checked) {
-                voteResult.vote = vote.type;
-                return;
-            }
-        });
 
         // first we need to make sure the user delegates their token to vote
         try {
@@ -66,8 +74,8 @@ const Proposal = ({ tokenModule=null, voteModule=null, index=null, address="", p
             const delegation = await tokenModule.getDelegationOf(address);
             // if the delegation is the 0x0 address that means they have not delegated their governance tokens yet
             if (delegation === ethers.constants.AddressZero) {
-            //if they haven't delegated their tokens yet, we'll have them delegate them before voting
-            await tokenModule.delegateTo(address);
+                //if they haven't delegated their tokens yet, we'll have them delegate them before voting
+                await tokenModule.delegateTo(address);
             }
             // then we need to vote on the proposals
             try {
@@ -108,35 +116,76 @@ const Proposal = ({ tokenModule=null, voteModule=null, index=null, address="", p
         }
     };
 
-    return (
-        <Form onSubmit={onSubmit}>
-            <Grid.Row style={{ padding: '4px' }} >
-                <Grid.Column>
-                    <Card key={proposal.proposalId} className="fluid" >
-                        <Card.Content>
-                            <Card.Description>
-                                {proposal.description}
-                            </Card.Description>
-                        </Card.Content>
-                        <Card.Content>
-                            {proposal.votes.map((vote) => (
-                                <label htmlFor={proposal.proposalId + "-" + vote.type} style={{display: "inline", padding: "20px"}}>
-                                    <input type="radio" id={proposal.proposalId + "-" + vote.type} name={proposal.proposalId} value={vote.type} defaultChecked={vote.type === 2} />
-                                    {vote.label}
-                                </label>
-                            ))}
-                        </Card.Content>
-                        <Card.Content>
-                            <Button disabled={isVoting || hasVoted} type="submit" primary>
-                                {isVoting ? "Voting..." : 
-                                    hasVoted ? "You Already Voted" : "Submit Votes"}
-                            </Button>
-                        </Card.Content>
-                    </Card>
-                </Grid.Column>
-            </Grid.Row>
-        </Form>
-    );
+    if ([3, 7].includes(proposal.state)) {
+        // Render only the description of the proposal alongside a green/red icon
+        //console.log(Object.getOwnPropertyNames(Object.getPrototypeOf(tokenModule)))
+        return (
+            <Segment inverted>
+                <Grid.Row style={{ padding: '4px' }}>
+                    <Grid.Column>
+                        <h4>{proposal.description}</h4>
+                        <Form inverted>
+                            <Form.Field>
+                                {proposal.state === 7 ? 
+                                <>
+                                    <Icon
+                                        name="chevron up"
+                                        floated="left" 
+                                        color="green"
+                                    />
+                                    <Label color="green">{proposalStateMapping[proposal.state]}</Label>
+                                </>
+                                 :
+                                <>
+                                    <Icon
+                                        name="chevron down"
+                                        floated="left" 
+                                        color="red"
+                                    />
+                                    <Label color="red">{proposalStateMapping[proposal.state]}</Label>
+                                </>}
+                            </Form.Field>
+                        </Form>
+                    </Grid.Column>
+                </Grid.Row>
+            </Segment>
+        )
+    } else if (proposal.state === 1) {
+        // Render active proposal
+        return (
+            <Segment inverted>
+                <Grid.Row style={{ padding: '4px' }} >
+                    <Grid.Column>
+                        <h4>{proposal.description}</h4>
+                        <Form onSubmit={onSubmit} inverted>
+                            <Form.Field>
+                                {proposal.votes.map((vote, index) => (
+                                    <Radio style={{ paddingRight: '20px' }}
+                                        label={vote.label}
+                                        id={proposal.proposalId + "-" + vote.type}
+                                        name={proposal.proposalId}
+                                        value={vote.type}
+                                        defaultChecked={vote.type === 2}
+                                        checked={voteType === vote.type}
+                                        onClick={handleRadioButtons}
+                                    />
+                                ))}
+                            </Form.Field>
+                            <Form.Field>
+                                <Button disabled={isVoting || hasVoted} primary>
+                                        {isVoting ? "Voting..." : 
+                                            hasVoted ? "You Already Voted" : "Submit Votes"}
+                                </Button>
+                            </Form.Field>
+                        </Form>
+                    </Grid.Column>
+                </Grid.Row>
+            </Segment>
+        );
+    } else {
+        // Otherwise we return nothing to render
+        return null
+    }
 }
 
 export default Proposal;

@@ -44,20 +44,21 @@ const App = () => {
 
   // Retrieve all our existing proposals from the contract.
   useEffect(() => {
-    if (!hasClaimedNFT) {
-      return;
-    }
-    // A simple call to voteModule.getAll() to grab the proposals.
-    voteModule
-      .getAll()
-      .then((proposals) => {
-        // Set state!
-        setProposals(proposals);
+    const getProposals = async () => {
+      if (!hasClaimedNFT) {
+        return;
+      }
+      
+      try {
+        // A simple call to voteModule.getAll() to grab the proposals.
+        let proposals = await voteModule.getAll()             // this is a different object than that of 'useState'
+        setProposals(proposals)
         console.log("🌈 Proposals:", proposals)
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("failed to get proposals", err);
-      });
+      }
+    }
+    getProposals();
   }, [hasClaimedNFT]);
 
   // A fancy function to shorten someones wallet address, no need to show the whole thing. 
@@ -120,7 +121,6 @@ const App = () => {
   useEffect(() => {
     // We pass the signer to the sdk, which enables us to interact with our deployed contract!
     sdk.setProviderOrSigner(signer);
-    console.log("We've just set the signer");
   }, [signer]);
 
   useEffect(() => {
@@ -131,24 +131,21 @@ const App = () => {
     }
     
     // Check if the user has the NFT by using bundleDropModule.balanceOf
-    return bundleDropModule
-      .balanceOf(address, "0")
-      .then((balance) => {
-        // If balance is greater than 0, they have our NFT!
-        if (balance.gt(0)) {
-          setHasClaimedNFT(true);
-          console.log("🌟 this user has a membership NFT!")
-        } else {
-          setHasClaimedNFT(false);
-          console.log("😭 this user doesn't have a membership NFT.")
-        }
-      })
-      .catch((error) => {
+    try {
+      let balance = await bundleDropModule.balanceOf(address, "0")
+      if (balance.gt(0)) {
+        setHasClaimedNFT(true);
+        console.log("🌟 this user has a membership NFT!")
+      } else {
         setHasClaimedNFT(false);
-        console.error("failed to nft balance", error);
-      });
+        console.log("😭 this user doesn't have a membership NFT.")
+      }
+    } catch (error) {
+      setHasClaimedNFT(false);
+      console.error("failed to nft balance", error);
     }
-    fetchNFT();
+  }
+  fetchNFT();
   }, [address]);
 
   if (error instanceof UnsupportedChainIdError ) {
@@ -191,8 +188,11 @@ const App = () => {
               <Grid.Row style={{paddingBottom: '20px'}}>
                 <MemberList shortenAddress={shortenAddress} memberList={memberList} className="card"/>
               </Grid.Row>
-              <Grid.Row floated width={5}>
-                <CreateProposal/>
+              <Grid.Row style={{paddingBottom: '20px'}} >
+                <CreateProposal voteModule={voteModule} tokenModule={tokenModule} />
+              </Grid.Row>
+              <Grid.Row style={{paddingBottom: '20px'}}>
+                <h2>Airdrop tokens to NFT holders</h2>
               </Grid.Row>
             </Grid.Column>
             <Grid.Column style={{width: '40vw'}}>
