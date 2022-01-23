@@ -7,10 +7,11 @@ import { ThirdwebSDK } from "@3rdweb/sdk";
 
 import { UnsupportedChainIdError } from "@web3-react/core";
 
-import { Container, Grid, Button } from 'semantic-ui-react';
+import { Container, Grid, Button, Segment } from 'semantic-ui-react';
 import Proposal from "./components/Proposal";
 import MemberList from "./components/MemberList";
 import CreateProposal from "./components/CreateProposal";
+import AirdropTokens from "./components/AirdropTokens";
 
 // We instantiate the sdk on Rinkeby.
 const sdk = new ThirdwebSDK("rinkeby");
@@ -140,9 +141,9 @@ const App = () => {
         setHasClaimedNFT(false);
         console.log("😭 this user doesn't have a membership NFT.")
       }
-    } catch (error) {
+    } catch (err) {
       setHasClaimedNFT(false);
-      console.error("failed to nft balance", error);
+      console.error("failed to fetch nft balance", err);
     }
   }
   fetchNFT();
@@ -150,7 +151,7 @@ const App = () => {
 
   if (error instanceof UnsupportedChainIdError ) {
     return (
-      <Container style={{background: 'green', width: '100vh'}} className="unsupported-network">
+      <Container style={{background: 'grey', width: '100vh'}} className="unsupported-network">
         <h2>Please connect to Rinkeby</h2>
         <p>
           This dapp only works on the Rinkeby network, please switch networks
@@ -164,7 +165,7 @@ const App = () => {
   // to your web app. Let them call connectWallet.
   if (!address) {
     return (
-      <Container style={{background: 'green', width: '100vw', height: '100vh'}} className="landing">
+      <Container style={{background: 'grey', width: '100vw', height: '100vh'}} className="landing">
         <h1>Welcome to FOMODAO</h1>
         <Button onClick={() => connectWallet("injected")} primary>
           Connect your wallet
@@ -177,10 +178,10 @@ const App = () => {
   // only DAO members will see this. Render all the members + token amounts.
   if (hasClaimedNFT) {
     return (
-      <Container style={{background: 'green', width: '100vw', height: '100%'}}>
-        <div style={{textAlign: "center", paddingBottom: '20px'}}>
+      <Container style={{background: 'grey', width: '100vw', height: '100%'}}>
+        <div style={{textAlign: "center", padding: '20px'}}>
           <h1>FOMODAO Member Page</h1>
-          <p>Congratulations on being a member</p>
+          <h2>Congratulations on being a member!</h2>
         </div>
         <Grid columns={2} divided textAlign='center' centered>
           <Grid.Row>
@@ -192,23 +193,25 @@ const App = () => {
                 <CreateProposal voteModule={voteModule} tokenModule={tokenModule} />
               </Grid.Row>
               <Grid.Row style={{paddingBottom: '20px'}}>
-                <h2>Airdrop tokens to NFT holders</h2>
+                <AirdropTokens tokenModule={tokenModule} bundleDropModule={bundleDropModule} />
               </Grid.Row>
             </Grid.Column>
             <Grid.Column style={{width: '40vw'}}>
-              <h2>Active Proposals</h2>
-              {proposals.map((proposal, index) => <Proposal
-                key={index}
-                index={index}
-                address={address}
-                proposal={proposal}
-                hasClaimedNFT={hasClaimedNFT}
-                tokenModule={tokenModule}
-                voteModule={voteModule}
-              />)}
-              <small>Interacting with any of the proposals will trigger multiple transactions that you will need to sign.</small>
+              <Segment inverted>
+                <h2>Resolved and active proposals</h2>
+                {proposals.map((proposal, index) => <Proposal
+                  key={index}
+                  index={index}
+                  address={address}
+                  proposal={proposal}
+                  hasClaimedNFT={hasClaimedNFT}
+                  tokenModule={tokenModule}
+                  voteModule={voteModule}
+                />)}
+                <small>Interacting with any of the proposals will trigger multiple transactions that you will need to sign.</small>
+              </Segment>
             </Grid.Column>
-          </Grid.Row>          
+          </Grid.Row>
         </Grid>
       </Container>
     );
@@ -237,7 +240,7 @@ const App = () => {
   
   // Render mint nft screen.
   return (
-    <Container style={{background: 'green', width: '100vw', height: '100vh'}} className="mint-nft">
+    <Container style={{background: 'grey', width: '100vw', height: '100vh'}} className="mint-nft">
       <h1>Mint your free FOMODAO Membership NFT</h1>
       <Button
         primary

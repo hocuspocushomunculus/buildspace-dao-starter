@@ -153,19 +153,19 @@ const Proposal = ({ tokenModule=null, voteModule=null, index=null, address="", p
     } else if (proposal.state === 1) {
         // Render active proposal
         return (
-            <Segment inverted>
+            <Segment inverted style={{ border: '2px solid orange' }}>
                 <Grid.Row style={{ padding: '4px' }} >
                     <Grid.Column>
                         <h4>{proposal.description}</h4>
                         <Form onSubmit={onSubmit} inverted>
                             <Form.Field>
-                                {proposal.votes.map((vote, index) => (
+                                {proposal.votes.map((vote, idx) => (
                                     <Radio style={{ paddingRight: '20px' }}
+                                        key={idx}
                                         label={vote.label}
                                         id={proposal.proposalId + "-" + vote.type}
                                         name={proposal.proposalId}
                                         value={vote.type}
-                                        defaultChecked={vote.type === 2}
                                         checked={voteType === vote.type}
                                         onClick={handleRadioButtons}
                                     />

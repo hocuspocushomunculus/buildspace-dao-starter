@@ -1,27 +1,27 @@
+import { Segment, Table } from 'semantic-ui-react';
+
 const MemberList = ({ shortenAddress, memberList }) => {
 
     return (
-        <div>
+        <Segment inverted>
             <h2>Member List</h2>
-            <table className="card">
-                <thead>
-                    <tr>
-                        <th>Address</th>
-                        <th>Token Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <Table celled inverted selectable>
+                <Table.Header>
+                    <Table.HeaderCell>Address</Table.HeaderCell>
+                    <Table.HeaderCell>Token Amount</Table.HeaderCell>
+                </Table.Header>
+                <Table.Body>
                     {memberList.map((member) => {
                         return (
-                            <tr key={member.address}>
-                            <td>{shortenAddress(member.address)}</td>
-                            <td>{member.tokenAmount}</td>
-                            </tr>
+                            <Table.Row key={member.address}>
+                                <Table.Cell>{shortenAddress(member.address)}</Table.Cell>
+                                <Table.Cell>{member.tokenAmount}</Table.Cell>
+                            </Table.Row>
                         );
                     })}
-                </tbody>
-            </table>
-        </div>
+                </Table.Body>
+            </Table>
+        </Segment>
     )
 }
 
