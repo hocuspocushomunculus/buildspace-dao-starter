@@ -16,6 +16,12 @@ const proposalStateMapping = {
     7: 'Executed'
 }
 
+const voteTypeMapping = {
+    0: 'Against',
+    1: 'For',
+    2: 'Abstain'
+}
+
 const Proposal = ({ tokenModule=null, voteModule=null, index=null, address="", proposal=[], hasClaimedNFT=false }) => {
     const [isVoting, setIsVoting] = useState(false);
     const [hasVoted, setHasVoted] = useState(false);
@@ -101,7 +107,7 @@ const Proposal = ({ tokenModule=null, voteModule=null, index=null, address="", p
                     // if we get here that means we successfully voted, so let's set the "hasVoted" state to true
                     setHasVoted(true);
                     // and log out a success message
-                    console.log("successfully voted");
+                    console.log("successfully voted '" + voteTypeMapping[voteType] + "'");
                 } catch (err) {
                     console.error("failed to execute votes", err);
                 }

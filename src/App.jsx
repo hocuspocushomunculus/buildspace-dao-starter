@@ -6,6 +6,7 @@ import { useWeb3 } from "@3rdweb/hooks";
 import { ThirdwebSDK } from "@3rdweb/sdk";
 
 import { UnsupportedChainIdError } from "@web3-react/core";
+import { NoEthereumProviderError } from '@web3-react/injected-connector';
 
 import { Container, Grid, Button, Segment } from 'semantic-ui-react';
 import Proposal from "./components/Proposal";
@@ -149,6 +150,12 @@ const App = () => {
   fetchNFT();
   }, [address]);
 
+  useEffect(() => {
+    if (error instanceof NoEthereumProviderError ) {
+      alert("No web3 provider was found, please install Metamask!")
+    }
+  }, [error])
+
   if (error instanceof UnsupportedChainIdError ) {
     return (
       <Container style={{background: 'grey', width: '100vh'}} className="unsupported-network">
@@ -167,7 +174,9 @@ const App = () => {
     return (
       <Container style={{background: 'grey', width: '100vw', height: '100vh'}} className="landing">
         <h1>Welcome to FOMODAO</h1>
-        <Button onClick={() => connectWallet("injected")} primary>
+        <Button 
+          onClick={() => connectWallet("injected")}
+          primary>
           Connect your wallet
         </Button>
       </Container>
